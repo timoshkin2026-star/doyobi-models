@@ -679,8 +679,12 @@ function openModelProfile(modelId) {
             }
         }
         
-        // Чужой профиль - открываем profile.html с ID
-        window.location.href = `profile.html?id=${model.id}`;
+        // Чужой профиль - открываем profile.html с username или ID
+        if (model.username) {
+            window.location.href = `profile.html?username=${model.username}`;
+        } else {
+            window.location.href = `profile.html?id=${model.id}`;
+        }
     }
 }
 
