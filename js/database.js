@@ -13,16 +13,8 @@ function initDatabase() {
         console.log('База данных пользователей создана (пустая)');
     }
     
-    // Создаем посты для каждой модели
-    const allUsers = JSON.parse(localStorage.getItem('users'));
-    allUsers.forEach(user => {
-        if (user.userType === 'model') {
-            const existingPosts = localStorage.getItem('userPosts_' + user.id);
-            if (!existingPosts) {
-                createDefaultPosts(user.id);
-            }
-        }
-    });
+    // Не создаем тестовые посты для моделей
+    // Посты будут создаваться только когда пользователь сам их загрузит
 }
 
 // Создание дефолтных постов для модели
