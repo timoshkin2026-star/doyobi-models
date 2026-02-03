@@ -12,7 +12,7 @@ function loadModelsFromDatabase() {
     
     return models.map(user => ({
         id: user.id,
-        name: user.username ? '@' + user.username : (user.name || 'Без имени'),
+        name: user.firstName && user.lastName ? user.firstName + ' ' + user.lastName : (user.name || 'Без имени'),
         username: user.username,
         age: user.age || 25,
         category: user.category || 'Fashion',
@@ -215,8 +215,11 @@ function renderModels() {
         const views = Math.floor(Math.random() * 5000) + 1000; // Случайное количество просмотров
         const isFavorite = favorites.includes(model.id);
         
+        // Формируем URL профиля
+        const profileUrl = model.username ? `profile.html?username=${model.username}` : `profile.html?id=${model.id}`;
+        
         return `
-        <div class="model-card" onclick="openModelProfile(${model.id})">
+        <a href="${profileUrl}" class="model-card" style="text-decoration: none; color: inherit; display: block;">
             <div class="model-image">
                 <img src="${model.image}" alt="${model.name}">
                 <div class="model-badges">
@@ -229,10 +232,10 @@ function renderModels() {
             </div>
             <div class="model-info">
                 <div class="model-name">
-                    ${model.name}
+                    ${model.username ? '@' + model.username : model.name}
                     ${isVerified ? '<span style="color: #0095f6; font-size: 16px;">✓</span>' : ''}
                 </div>
-                <div class="model-age">${model.age} лет</div>
+                <div class="model-age">${model.name && model.username ? model.name + ' • ' : ''}${model.age} лет</div>
                 <div class="model-category">${getCategoryName(model.category)}</div>
                 
                 <div class="model-views">${views.toLocaleString()} просмотров</div>
@@ -255,22 +258,22 @@ function renderModels() {
                 <div class="model-price">${(model.price || 0).toLocaleString()} ₽/час</div>
                 
                 <div class="model-actions">
-                    <button class="btn btn-primary btn-small" onclick="event.stopPropagation(); contactModel(${model.id})">
+                    <button class="btn btn-primary btn-small" onclick="event.preventDefault(); event.stopPropagation(); contactModel(${model.id})">
                         Связаться
                     </button>
                     <button class="btn btn-outline btn-small favorite-btn ${isFavorite ? 'active' : ''}" 
-                            onclick="event.stopPropagation(); toggleFavorite(${model.id})" 
+                            onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite(${model.id})" 
                             data-tooltip="Добавить в избранное">
                         ${isFavorite ? '♥' : '♡'}
                     </button>
                     <button class="btn btn-outline btn-small" 
-                            onclick="event.stopPropagation(); showQuickPreview(${model.id})" 
+                            onclick="event.preventDefault(); event.stopPropagation(); showQuickPreview(${model.id})" 
                             data-tooltip="Быстрый просмотр">
                         👁
                     </button>
                 </div>
             </div>
-        </div>
+        </a>
     `;
     }).join('');
 
