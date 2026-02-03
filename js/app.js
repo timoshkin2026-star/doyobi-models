@@ -667,7 +667,18 @@ function openModelProfile(modelId) {
         // Сохраняем в историю просмотров
         saveToHistory(model);
         
-        // Переходим на страницу профиля с ID модели
+        // Проверяем, это свой профиль или чужой
+        const currentUser = localStorage.getItem('currentUser');
+        if (currentUser) {
+            const userData = JSON.parse(currentUser);
+            if (userData.id === modelId) {
+                // Это свой профиль - открываем user-profile.html
+                window.location.href = 'user-profile.html';
+                return;
+            }
+        }
+        
+        // Чужой профиль - открываем profile.html с ID
         window.location.href = `profile.html?id=${model.id}`;
     }
 }
