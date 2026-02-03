@@ -31,11 +31,11 @@ function loadProfileFromURL() {
 
 function loadProfileData(user) {
     // Обновляем заголовок страницы
-    document.title = `${user.name} - Дойоби`;
+    document.title = `@${user.username || user.name} - Дойоби`;
     
     // Устанавливаем данные профиля
     document.getElementById('profileAvatar').src = user.avatar;
-    document.getElementById('profileName').textContent = user.name;
+    document.getElementById('profileName').textContent = user.username ? '@' + user.username : user.name;
     
     // Статус онлайн
     const statusIndicator = document.querySelector('.status-indicator');
