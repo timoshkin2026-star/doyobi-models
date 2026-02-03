@@ -47,7 +47,19 @@ function loadProfileData(user) {
     
     // Устанавливаем данные профиля
     document.getElementById('profileAvatar').src = user.avatar;
-    document.getElementById('profileName').textContent = user.username ? '@' + user.username : user.name;
+    
+    // Показываем никнейм как основное имя
+    const profileNameElement = document.getElementById('profileName');
+    if (user.username) {
+        profileNameElement.textContent = '@' + user.username;
+        // Добавляем полное имя под никнеймом
+        const fullName = (user.firstName && user.lastName) ? user.firstName + ' ' + user.lastName : user.name;
+        if (fullName && fullName !== user.username) {
+            profileNameElement.innerHTML = `@${user.username}<br><small style="font-size: 18px; font-weight: 400; color: #718096;">${fullName}</small>`;
+        }
+    } else {
+        profileNameElement.textContent = user.name;
+    }
     
     // Статус онлайн
     const statusIndicator = document.querySelector('.status-indicator');
