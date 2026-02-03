@@ -113,7 +113,12 @@ function loadUserData() {
     // Обновляем имя
     const nameElement = document.getElementById('userName');
     if (nameElement) {
-        nameElement.textContent = userData.username ? '@' + userData.username : userData.name;
+        if (userData.username) {
+            const fullName = (fullUser.firstName && fullUser.lastName) ? fullUser.firstName + ' ' + fullUser.lastName : userData.name;
+            nameElement.innerHTML = `@${userData.username}<br><small style="font-size: 16px; font-weight: 400; color: #718096;">${fullName}</small>`;
+        } else {
+            nameElement.textContent = userData.name;
+        }
     }
     
     // Обновляем email
