@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru" style="overflow-y:scroll!important;height:100%">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дойоби - Каталог моделей</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body style="min-height:100vh!important">
+    <script>document.documentElement.style.overflowY='scroll';document.body.style.minHeight='100vh'</script>
+    <header class="header">
+        <div class="container">
+            <div class="logo"><h1><a href="index.html">Дойоби</a></h1></div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Главная</a>
+                <a href="messages.html" class="nav-link">Сообщения</a>
+            </nav>
+            <div class="auth-buttons" id="authButtons"></div>
+        </div>
+    </header>
+    <script src="js/auth-loader.js"></script>
+
+    <!-- Главный контент -->
+    <main class="main">
+        <div class="container">
+            <h1 class="page-title">Каталог моделей Москвы</h1>
+            
+            <!-- Поиск -->
+            <div class="search-bar">
+                <div class="search-input-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" 
+                           class="search-input" 
+                           id="searchInput" 
+                           placeholder="Поиск по имени, категории..."
+                           oninput="handleSearch(event)">
+                    <button class="clear-search" id="clearSearch" onclick="clearSearch()" style="display: none;">✕</button>
+                </div>
+                <button class="btn btn-outline" onclick="toggleFilters()">
+                    <span>⚙️</span> Фильтры
+                </button>
+            </div>
+            
+            <!-- Фильтры -->
+            <div class="filters" id="filtersPanel">
+                <div class="filter-header">
+                    <span class="filter-icon">🔍</span>
+                    <h3>Быстрый поиск</h3>
+                </div>
+                
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label>Город</label>
+                        <select class="filter-select" id="city">
+                            <option value="">Москва</option>
+                            <option value="spb">Санкт-Петербург</option>
+                            <option value="ekb">Екатеринбург</option>
+                            <option value="nsk">Новосибирск</option>
+                            <option value="kzn">Казань</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Район</label>
+                        <select class="filter-select" id="district">
+                            <option value="">Выбрать</option>
+                            <option value="center">Центр</option>
+                            <option value="north">Север</option>
+                            <option value="south">Юг</option>
+                            <option value="east">Восток</option>
+                            <option value="west">Запад</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Метро</label>
+                        <select class="filter-select" id="metro">
+                            <option value="">Выбрать</option>
+                            <option value="arbatskaya">Арбатская</option>
+                            <option value="tverskaya">Тверская</option>
+                            <option value="mayakovskaya">Маяковская</option>
+                            <option value="pushkinskaya">Пушкинская</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Возраст: <span id="ageValue">18 - 80</span></label>
+                        <div class="range-slider">
+                            <input type="range" min="18" max="80" value="18" class="range-input" id="ageMin">
+                            <input type="range" min="18" max="80" value="80" class="range-input" id="ageMax">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Рост: <span id="heightValue">140 - 200</span></label>
+                        <div class="range-slider">
+                            <input type="range" min="140" max="200" value="140" class="range-input" id="heightMin">
+                            <input type="range" min="140" max="200" value="200" class="range-input" id="heightMax">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Грудь: <span id="breastValue">1 - 12</span></label>
+                        <div class="range-slider">
+                            <input type="range" min="1" max="12" value="1" class="range-input" id="breastMin">
+                            <input type="range" min="1" max="12" value="12" class="range-input" id="breastMax">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Цена: <span id="priceValue">1000 - 20000</span></label>
+                        <div class="range-slider">
+                            <input type="range" min="1000" max="20000" step="500" value="1000" class="range-input" id="priceMin">
+                            <input type="range" min="1000" max="20000" step="500" value="20000" class="range-input" id="priceMax">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Категория</label>
+                        <select class="filter-select" id="category">
+                            <option value="">Все</option>
+                            <option value="fashion">Fashion</option>
+                            <option value="photo">Фото</option>
+                            <option value="runway">Подиум</option>
+                            <option value="commercial">Коммерческие</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <button class="btn btn-secondary" id="clearFilters">Сбросить</button>
+                    <button class="btn btn-primary" id="applyFilters">Подобрать</button>
+                </div>
+            </div>
+
+            <!-- Результаты -->
+            <div class="results-header">
+                <span class="results-count">Найдено <span id="resultsCount">24</span> анкеты из 24</span>
+                <div class="sort-options">
+                    <label>Сортировка:</label>
+                    <select id="sortBy">
+                        <option value="rating">По рейтингу</option>
+                        <option value="price">По цене</option>
+                        <option value="age">По возрасту</option>
+                        <option value="new">Новые</option>
+                        <option value="popular">Популярные</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Топ донатеры (показывается только авторизованным) -->
+            <div class="top-donors-banner" id="topDonorsBanner" style="display: none;">
+                <div class="banner-content">
+                    <div class="banner-icon">👑</div>
+                    <div class="banner-text">
+                        <h3>Станьте VIP-клиентом!</h3>
+                        <p>Отправляйте донаты моделям и получайте эксклюзивные привилегии</p>
+                    </div>
+                    <button class="btn btn-gradient" onclick="showTopDonors()">
+                        Топ донатеров
+                    </button>
+                </div>
+            </div>
+
+            <!-- Сетка моделей -->
+            <div class="models-grid" id="modelsGrid">
+                <!-- Карточки моделей будут добавлены через JS -->
+            </div>
+
+            <!-- Пагинация -->
+            <div class="pagination">
+                <button class="page-btn" disabled>←</button>
+                <button class="page-btn active">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn">3</button>
+                <button class="page-btn">→</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Футер -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Дойоби</h3>
+                    <p>Лучшая платформа для поиска профессиональных моделей в Москве</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Услуги</h4>
+                    <ul>
+                        <li><a href="#">Поиск моделей</a></li>
+                        <li><a href="#">Кастинги</a></li>
+                        <li><a href="#">Портфолио</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Поддержка</h4>
+                    <ul>
+                        <li><a href="#">Помощь</a></li>
+                        <li><a href="#">Контакты</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Контакты</h4>
+                    <p>📧 info@modelhub.ru</p>
+                    <p>📱 +7 (495) 123-45-67</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Дойоби. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/database.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

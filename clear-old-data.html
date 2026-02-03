@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Очистка старых данных - Дойоби</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        
+        .info {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            color: #92400e;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: transform 0.2s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+        
+        .result.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .stats {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            color: #718096;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #2d3748;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Очистка старых данных</h1>
+        
+        <div class="info">
+            <strong>⚠️ Внимание!</strong><br>
+            Эта страница поможет очистить старые данные без userId и мигрировать их к текущему пользователю.
+        </div>
+        
+        <div class="stats" id="stats">
+            <h3 style="margin-bottom: 15px; color: #2d3748;">Текущее состояние:</h3>
+            <div class="stat-item">
+                <span class="stat-label">Донатов без userId:</span>
+                <span class="stat-value" id="oldDonations">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Подписок без userId:</span>
+                <span class="stat-value" id="oldSubscriptions">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Premium без userId:</span>
+                <span class="stat-value" id="oldPremium">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Истории без userId:</span>
+                <span class="stat-value" id="oldHistory">-</span>
+            </div>
+        </div>
+        
+        <button class="btn" onclick="checkData()">🔍 Проверить данные</button>
+        <button class="btn" onclick="migrateData()">✅ Мигрировать к текущему пользователю</button>
+        <button class="btn btn-danger" onclick="clearOldData()">🗑️ Удалить старые данные</button>
+        <button class="btn" onclick="goBack()">← Вернуться на сайт</button>
+        
+        <div class="result" id="result"></div>
+    </div>
+    
+    <script>
+        function checkData() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            
+            if (!currentUser) {
+                showResult('Войдите в аккаунт для проверки данных', 'error');
+                return;
+            }
+            
+            const donationHistory = JSON.parse(localStorage.getItem('donationHistory') || '[]');
+            const subscriptions = JSON.parse(localStorage.getItem('subscriptions') || '[]');
+            const premiumSubscriptions = JSON.parse(localStorage.getItem('premiumSubscriptions') || '[]');
+            const viewHistory = JSON.parse(localStorage.getItem('viewHistory') || '[]');
+            const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            
+            const oldDonations = donationHistory.filter(item => !item.userId).length;
+            const oldSubscriptions = subscriptions.filter(item => !item.userId).length;
+            const oldPremium = premiumSubscriptions.filter(item => !item.userId).length;
+            const oldHistory = viewHistory.filter(item => !item.userId).length;
+            const oldFavorites = favorites.length > 0 && typeof favorites[0] === 'number' ? favorites.length : 0;
+            
+            document.getElementById('oldDonations').textContent = oldDonations;
+            document.getElementById('oldSubscriptions').textContent = oldSubscriptions;
+            document.getElementById('oldPremium').textContent = oldPremium;
+            document.getElementById('oldHistory').textContent = oldHistory;
+            
+            const total = oldDonations + oldSubscriptions + oldPremium + oldHistory + oldFavorites;
+            
+            if (total === 0) {
+                showResult('✅ Все данные уже имеют userId! Миграция не требуется.', 'success');
+            } else {
+                showResult(`Найдено ${total} записей без userId (включая ${oldFavorites} избранных). Вы можете мигрировать их к текущему пользователю или удалить.`, 'error');
+            }
+        }
+        
+        function migrateData() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            
+            if (!currentUser) {
+                showResult('Войдите в аккаунт для миграции данных', 'error');
+                return;
+            }
+            
+            let migrated = 0;
+            
+            // Миграция донатов
+            let donationHistory = JSON.parse(localStorage.getItem('donationHistory') || '[]');
+            donationHistory = donationHistory.map(item => {
+                if (!item.userId) {
+                    migrated++;
+                    return { ...item, userId: currentUser.id };
+                }
+                return item;
+            });
+            localStorage.setItem('donationHistory', JSON.stringify(donationHistory));
+            
+            // Миграция подписок
+            let subscriptions = JSON.parse(localStorage.getItem('subscriptions') || '[]');
+            subscriptions = subscriptions.map(item => {
+                if (!item.userId) {
+                    migrated++;
+                    return { ...item, userId: currentUser.id };
+                }
+                return item;
+            });
+            localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
+            
+            // Миграция Premium
+            let premiumSubscriptions = JSON.parse(localStorage.getItem('premiumSubscriptions') || '[]');
+            premiumSubscriptions = premiumSubscriptions.map(item => {
+                if (!item.userId) {
+                    migrated++;
+                    return { ...item, userId: currentUser.id };
+                }
+                return item;
+            });
+            localStorage.setItem('premiumSubscriptions', JSON.stringify(premiumSubscriptions));
+            
+            // Миграция истории
+            let viewHistory = JSON.parse(localStorage.getItem('viewHistory') || '[]');
+            viewHistory = viewHistory.map(item => {
+                if (!item.userId) {
+                    migrated++;
+                    return { ...item, userId: currentUser.id };
+                }
+                return item;
+            });
+            localStorage.setItem('viewHistory', JSON.stringify(viewHistory));
+            
+            // Миграция избранного
+            let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+            if (favorites.length > 0 && typeof favorites[0] === 'number') {
+                // Старый формат - массив ID
+                const newFavorites = favorites.map(id => ({
+                    userId: currentUser.id,
+                    modelId: id,
+                    addedAt: new Date().toISOString()
+                }));
+                localStorage.setItem('favorites', JSON.stringify(newFavorites));
+                migrated += favorites.length;
+            }
+            
+            showResult(`✅ Успешно мигрировано ${migrated} записей к пользователю ${currentUser.name}!`, 'success');
+            checkData();
+        }
+        
+        function clearOldData() {
+            if (!confirm('Вы уверены? Это удалит все данные без userId безвозвратно!')) {
+                return;
+            }
+            
+            let deleted = 0;
+            
+            // Очистка донатов
+            let donationHistory = JSON.parse(localStorage.getItem('donationHistory') || '[]');
+            const oldDonationsCount = donationHistory.filter(item => !item.userId).length;
+            donationHistory = donationHistory.filter(item => item.userId);
+            localStorage.setItem('donationHistory', JSON.stringify(donationHistory));
+            deleted += oldDonationsCount;
+            
+            // Очистка подписок
+            let subscriptions = JSON.parse(localStorage.getItem('subscriptions') || '[]');
+            const oldSubscriptionsCount = subscriptions.filter(item => !item.userId).length;
+            subscriptions = subscriptions.filter(item => item.userId);
+            localStorage.setItem('subscriptions', JSON.stringify(subscriptions));
+            deleted += oldSubscriptionsCount;
+            
+            // Очистка Premium
+            let premiumSubscriptions = JSON.parse(localStorage.getItem('premiumSubscriptions') || '[]');
+            const oldPremiumCount = premiumSubscriptions.filter(item => !item.userId).length;
+            premiumSubscriptions = premiumSubscriptions.filter(item => item.userId);
+            localStorage.setItem('premiumSubscriptions', JSON.stringify(premiumSubscriptions));
+            deleted += oldPremiumCount;
+            
+            // Очистка истории
+            let viewHistory = JSON.parse(localStorage.getItem('viewHistory') || '[]');
+            const oldHistoryCount = viewHistory.filter(item => !item.userId).length;
+            viewHistory = viewHistory.filter(item => item.userId);
+            localStorage.setItem('viewHistory', JSON.stringify(viewHistory));
+            deleted += oldHistoryCount;
+            
+            showResult(`🗑️ Удалено ${deleted} старых записей без userId`, 'success');
+            checkData();
+        }
+        
+        function showResult(message, type) {
+            const result = document.getElementById('result');
+            result.textContent = message;
+            result.className = 'result ' + type;
+            result.style.display = 'block';
+        }
+        
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+        
+        // Автоматическая проверка при загрузке
+        window.addEventListener('load', checkData);
+    </script>
+</body>
+</html>

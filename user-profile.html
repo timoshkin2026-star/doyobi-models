@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ru" style="overflow-y: scroll !important; height: 100%;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой профиль - Дойоби</title>
+    <style>
+        /* Критический CSS для предотвращения прыжков - ПРИМЕНЯЕТСЯ МГНОВЕННО */
+        html { overflow-y: scroll !important; height: 100%; width: 100vw; overflow-x: hidden; }
+        body { min-height: 100vh !important; margin: 0; padding: 0; }
+        .profile-main { min-height: 100vh !important; }
+        .profile-header { min-height: 300px !important; }
+    </style>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/user-profile.css">
+</head>
+<body style="min-height: 100vh !important;">
+    <script>
+        // КРИТИЧНО: Выполняется ДО отрисовки страницы
+        document.documentElement.style.overflowY = 'scroll';
+        document.documentElement.style.height = '100%';
+        document.body.style.minHeight = '100vh';
+    </script>
+    <!-- Хедер -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1><a href="index.html">Дойоби</a></h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Главная</a>
+                <a href="messages.html" class="nav-link">Сообщения</a>
+            </nav>
+            <div class="auth-buttons" id="authButtons">
+                <!-- Контент будет загружен через inline script -->
+            </div>
+        </div>
+    </header>
+    
+    <script>
+        // Синхронная загрузка меню ДО отрисовки страницы
+        (function() {
+            const currentUserData = localStorage.getItem('currentUser');
+            const authButtons = document.getElementById('authButtons');
+            
+            if (currentUserData) {
+                try {
+                    const userData = JSON.parse(currentUserData);
+                    
+                    // Упрощенная проверка - если есть id и email, значит авторизован
+                    if (userData.id && userData.email && userData.isGuest !== true) {
+                        authButtons.innerHTML = `
+                            <div class="user-menu" onclick="toggleUserMenu()" style="display: flex; align-items: center; gap: 10px; cursor: pointer; position: relative; width: 100%; justify-content: flex-end;">
+                                <img src="${userData.avatar}" alt="Avatar" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+                                <span style="font-weight: 600; color: #2d3748; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">${userData.name}</span>
+                                <div class="dropdown-menu" id="dropdownMenu" style="position: absolute; top: 100%; right: 0; background: white; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 10px 0; min-width: 180px; display: none; z-index: 100; margin-top: 10px;">
+                                    <a href="user-profile.html" style="display: block; padding: 10px 15px; color: #4a5568; text-decoration: none; transition: background 0.3s ease;" onmouseover="this.style.background='#f7fafc'; this.style.color='#667eea'" onmouseout="this.style.background=''; this.style.color='#4a5568'">Мой профиль</a>
+                                    <a href="#" onclick="logout()" style="display: block; padding: 10px 15px; color: #4a5568; text-decoration: none; transition: background 0.3s ease;" onmouseover="this.style.background='#f7fafc'; this.style.color='#667eea'" onmouseout="this.style.background=''; this.style.color='#4a5568'">Выйти</a>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        authButtons.innerHTML = `
+                            <a href="auth.html" class="btn btn-outline" style="flex-shrink: 0;">Войти</a>
+                            <a href="auth.html?register=true" class="btn btn-primary" style="flex-shrink: 0;">Регистрация</a>
+                        `;
+                    }
+                } catch (e) {
+                    authButtons.innerHTML = `
+                        <a href="auth.html" class="btn btn-outline" style="flex-shrink: 0;">Войти</a>
+                        <a href="auth.html?register=true" class="btn btn-primary" style="flex-shrink: 0;">Регистрация</a>
+                    `;
+                }
+            } else {
+                authButtons.innerHTML = `
+                    <a href="auth.html" class="btn btn-outline" style="flex-shrink: 0;">Войти</a>
+                    <a href="auth.html?register=true" class="btn btn-primary" style="flex-shrink: 0;">Регистрация</a>
+                `;
+            }
+        })();
+    </script>
+
+    <!-- Профиль пользователя -->
+    <main class="profile-main">
+        <div class="container">
+            <!-- Шапка профиля -->
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <img src="" alt="Avatar" id="userAvatar" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;">
+                    <input type="file" id="avatarInput" accept="image/*" style="display: none;" onchange="handleAvatarUpload(event)">
+                    <button class="change-avatar-btn" onclick="document.getElementById('avatarInput').click()">📷</button>
+                </div>
+                
+                <div class="profile-info">
+                    <div class="profile-name-section">
+                        <h1 class="profile-name" id="userName"></h1>
+                        <div class="profile-badges">
+                            <span class="badge" id="userTypeBadge"></span>
+                        </div>
+                    </div>
+                    
+                    <script>
+                        // Синхронная загрузка данных профиля ДО отрисовки
+                        (function() {
+                            const currentUser = localStorage.getItem('currentUser');
+                            if (currentUser) {
+                                const userData = JSON.parse(currentUser);
+                                
+                                // Синхронизируем с users
+                                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                                const fullUser = users.find(u => u.id === userData.id);
+                                const user = fullUser || userData;
+                                
+                                // Устанавливаем аватарку
+                                document.getElementById('userAvatar').src = user.avatar;
+                                
+                                // Устанавливаем имя
+                                document.getElementById('userName').textContent = user.name;
+                                
+                                // Устанавливаем тип пользователя
+                                const userTypeMap = {
+                                    'client': 'Клиент',
+                                    'model': 'Модель',
+                                    'photographer': 'Фотограф'
+                                };
+                                document.getElementById('userTypeBadge').textContent = userTypeMap[user.userType] || 'Клиент';
+                                
+                                // Устанавливаем био
+                                if (user.userType === 'model') {
+                                    document.getElementById('userBio').textContent = 'Профессиональная модель 📸 Fashion & Commercial | Москва 🏙️ | Доступна для съемок ✨';
+                                    // Устанавливаем тестовое количество подписчиков
+                                    document.getElementById('followersCount').textContent = '2.4к';
+                                } else {
+                                    document.getElementById('userBio').textContent = user.email || 'Расскажите о себе...';
+                                }
+                            }
+                        })();
+                    </script>
+                    
+                    <div class="profile-stats">
+                        <div class="stat">
+                            <span class="stat-number" id="postsCount">0</span>
+                            <span class="stat-label">постов</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" id="followersCount">0</span>
+                            <span class="stat-label">подписчиков</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" id="likesCount">0</span>
+                            <span class="stat-label">лайков</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number" id="memberSince">2024</span>
+                            <span class="stat-label">с нами</span>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-description">
+                        <p id="userBio">Расскажите о себе...</p>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button class="btn btn-primary btn-large" onclick="editProfile()">
+                            Редактировать профиль
+                        </button>
+                        <button class="btn btn-gradient btn-large" id="dashboardBtn" onclick="window.location.href='model-dashboard.html'" style="display:none;">
+                            📊 Панель управления
+                        </button>
+                        <button class="btn btn-outline btn-large" onclick="uploadPost()">
+                            ➕ Создать пост
+                        </button>
+                    </div>
+                    
+                    <script>
+                        // Показываем кнопку панели управления для моделей
+                        (function() {
+                            const currentUser = localStorage.getItem('currentUser');
+                            if (currentUser) {
+                                const userData = JSON.parse(currentUser);
+                                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                                const fullUser = users.find(u => u.id === userData.id);
+                                const user = fullUser || userData;
+                                
+                                if (user.userType === 'model') {
+                                    document.getElementById('dashboardBtn').style.display = 'inline-block';
+                                }
+                            }
+                        })();
+                    </script>
+                </div>
+            </div>
+
+            <!-- Навигация по контенту -->
+            <div class="content-nav">
+                <button class="content-tab active" data-tab="posts">
+                    <span class="tab-icon">📷</span>
+                    <span>Посты</span>
+                </button>
+                <button class="content-tab" data-tab="videos">
+                    <span class="tab-icon">🎥</span>
+                    <span>Видео</span>
+                </button>
+                <button class="content-tab" data-tab="saved">
+                    <span class="tab-icon">🔖</span>
+                    <span>Сохраненное</span>
+                </button>
+                <button class="content-tab" data-tab="tagged">
+                    <span class="tab-icon">👤</span>
+                    <span>Отметки</span>
+                </button>
+                <button class="content-tab" data-tab="settings">
+                    <span class="tab-icon">⚙️</span>
+                    <span>Настройки</span>
+                </button>
+            </div>
+
+            <!-- Контент -->
+            <div class="profile-content">
+                <!-- Посты (галерея) -->
+                <div class="content-section active" id="posts">
+                    <div class="posts-grid" id="postsGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon">📷</div>
+                            <h3>Нет постов</h3>
+                            <p>Загрузите свои фото и видео, чтобы они отображались здесь</p>
+                            <button class="btn btn-primary" onclick="uploadPost()">Загрузить пост</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Видео -->
+                <div class="content-section" id="videos">
+                    <div class="videos-grid" id="videosGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon">🎥</div>
+                            <h3>Нет видео</h3>
+                            <p>Загрузите видео, чтобы они отображались здесь</p>
+                            <button class="btn btn-primary" onclick="uploadVideo()">Загрузить видео</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Сохраненное -->
+                <div class="content-section" id="saved">
+                    <div class="saved-grid" id="savedGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon">🔖</div>
+                            <h3>Нет сохраненных постов</h3>
+                            <p>Сохраняйте понравившиеся посты, чтобы быстро находить их</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Отметки -->
+                <div class="content-section" id="tagged">
+                    <div class="tagged-grid" id="taggedGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon">👤</div>
+                            <h3>Нет отметок</h3>
+                            <p>Здесь будут посты, где вас отметили</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Настройки -->
+                <div class="content-section" id="settings">
+                    <h2>Настройки профиля</h2>
+                    
+                    <div class="settings-form">
+                        <div class="form-group">
+                            <label>Имя</label>
+                            <input type="text" id="settingsFirstName" placeholder="Введите имя">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Фамилия</label>
+                            <input type="text" id="settingsLastName" placeholder="Введите фамилию">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="settingsEmail" placeholder="email@example.com" disabled>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Тип аккаунта</label>
+                            <select id="settingsUserType" disabled>
+                                <option value="client">Клиент</option>
+                                <option value="model">Модель</option>
+                                <option value="photographer">Фотограф</option>
+                            </select>
+                        </div>
+                        
+                        <button class="btn btn-primary btn-large" onclick="saveSettings()">
+                            Сохранить изменения
+                        </button>
+                        
+                        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e2e8f0;">
+                        
+                        <h3 style="margin-bottom: 20px;">Изменить пароль</h3>
+                        
+                        <div class="form-group">
+                            <label>Текущий пароль</label>
+                            <input type="password" id="currentPassword" placeholder="Введите текущий пароль">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Новый пароль</label>
+                            <input type="password" id="newPassword" placeholder="Введите новый пароль">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Подтвердите новый пароль</label>
+                            <input type="password" id="confirmNewPassword" placeholder="Подтвердите новый пароль">
+                        </div>
+                        
+                        <button class="btn btn-outline btn-large" onclick="changePassword()">
+                            Изменить пароль
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальное окно для предпросмотра аватара -->
+    <div class="modal" id="avatarPreviewModal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px; background: white; border-radius: 20px; padding: 30px;">
+            <button class="modal-close" onclick="closeAvatarPreview()">&times;</button>
+            <h2 style="text-align: center; margin-bottom: 20px; color: #2d3748;">Предпросмотр аватара</h2>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img id="avatarPreview" src="" alt="Preview" style="width: 200px; height: 200px; border-radius: 50%; object-fit: cover; border: 4px solid #667eea;">
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-outline btn-large" onclick="closeAvatarPreview()" style="flex: 1;">
+                    Отмена
+                </button>
+                <button class="btn btn-primary btn-large" onclick="confirmAvatarUpload()" style="flex: 1;">
+                    Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для загрузки поста -->
+    <div class="modal" id="uploadPostModal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px; background: white; border-radius: 20px; padding: 30px;">
+            <button class="modal-close" onclick="closeUploadPostModal()">&times;</button>
+            <h2 style="text-align: center; margin-bottom: 20px; color: #2d3748;">Создать пост</h2>
+            
+            <div class="form-group">
+                <label>Загрузить фото/видео</label>
+                <input type="file" id="postFileInput" accept="image/*,video/*" multiple style="margin-bottom: 15px;">
+            </div>
+            
+            <div class="form-group">
+                <label>Описание</label>
+                <textarea id="postDescription" placeholder="Добавьте описание..." rows="4" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 10px; font-family: inherit;"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="postIsPremium">
+                    <span style="margin-left: 8px;">Сделать Premium контентом</span>
+                </label>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-outline btn-large" onclick="closeUploadPostModal()" style="flex: 1;">
+                    Отмена
+                </button>
+                <button class="btn btn-primary btn-large" onclick="publishPost()" style="flex: 1;">
+                    Опубликовать
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/user-profile.js"></script>
+    <script>
+        // Предотвращаем прыжки скролла при перезагрузке
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+        window.addEventListener('beforeunload', function() {
+            window.scrollTo(0, 0);
+        });
+    </script>
+</body>
+</html>

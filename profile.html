@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="ru" style="overflow-y: scroll !important; height: 100%;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль модели - Дойоби</title>
+    <style>
+        /* Критический CSS для предотвращения прыжков - ПРИМЕНЯЕТСЯ МГНОВЕННО */
+        html { overflow-y: scroll !important; height: 100%; width: 100vw; overflow-x: hidden; }
+        body { min-height: 100vh !important; margin: 0; padding: 0; }
+        .profile-main { min-height: 100vh !important; }
+        .profile-header { min-height: 350px !important; }
+        .profile-content { min-height: 600px !important; }
+    </style>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/profile.css">
+</head>
+<body style="min-height: 100vh !important;">
+    <script>
+        // КРИТИЧНО: Выполняется ДО отрисовки страницы
+        document.documentElement.style.overflowY = 'scroll';
+        document.documentElement.style.height = '100%';
+        document.body.style.minHeight = '100vh';
+    </script>
+    <!-- Хедер -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1><a href="index.html">Дойоби</a></h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Главная</a>
+                <a href="messages.html" class="nav-link">Сообщения</a>
+            </nav>
+            <div class="auth-buttons" id="authButtons">
+                <!-- Контент будет загружен через inline script -->
+            </div>
+        </div>
+    </header>
+    
+    <script>
+        // Синхронная загрузка меню ДО отрисовки страницы
+        (function() {
+            const currentUserData = localStorage.getItem('currentUser');
+            const authButtons = document.getElementById('authButtons');
+            
+            if (currentUserData) {
+                try {
+                    const userData = JSON.parse(currentUserData);
+                    
+                    // Упрощенная проверка - если есть id и email, значит авторизован
+                    if (userData.id && userData.email && userData.isGuest !== true) {
+                        authButtons.innerHTML = `
+                            <div class="user-menu" onclick="toggleUserMenu()" style="display: flex; align-items: center; gap: 10px; cursor: pointer; position: relative; width: 100%; justify-content: flex-end;">
+                                <img src="${userData.avatar}" alt="Avatar" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+                                <span style="font-weight: 600; color: #2d3748; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">${userData.name}</span>
+                                <div class="dropdown-menu" id="dropdownMenu" style="position: absolute; top: 100%; right: 0; background: white; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 10px 0; min-width: 180px; display: none; z-index: 100; margin-top: 10px;">
+                                    <a href="user-profile.html" style="display: block; padding: 10px 15px; color: #4a5568; text-decoration: none; transition: background 0.3s ease;" onmouseover="this.style.background='#f7fafc'; this.style.color='#667eea'" onmouseout="this.style.background=''; this.style.color='#4a5568'">Мой профиль</a>
+                                    <a href="#" onclick="logout()" style="display: block; padding: 10px 15px; color: #4a5568; text-decoration: none; transition: background 0.3s ease;" onmouseover="this.style.background='#f7fafc'; this.style.color='#667eea'" onmouseout="this.style.background=''; this.style.color='#4a5568'">Выйти</a>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        authButtons.innerHTML = `
+                            <a href="auth.html" class="btn btn-outline" style="flex-shrink: 0;">Войти</a>
+                            <a href="auth.html?register=true" class="btn btn-primary" style="flex-shrink: 0;">Регистрация</a>
+                        `;
+                    }
+                } catch (e) {
+                    authButtons.innerHTML = `
+                        <a href="auth.html" class="btn btn-outline" style="flex-shrink: 0;">Войти</a>
+                        <a href="auth.html?register=true" class="btn btn-primary" style="flex-shrink: 0;">Регистрация</a>
+                    `;
+                }
+            } else {
+                authButtons.innerHTML = `
+                    <a href="auth.html" class="btn btn-outline" style="flex-shrink: 0;">Войти</a>
+                    <a href="auth.html?register=true" class="btn btn-primary" style="flex-shrink: 0;">Регистрация</a>
+                `;
+            }
+        })();
+    </script>
+
+    <!-- Профиль модели -->
+    <main class="profile-main">
+        <div class="container">
+            <!-- Шапка профиля -->
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop" alt="Анастасия" id="profileAvatar">
+                    <div class="status-indicator online"></div>
+                </div>
+                
+                <div class="profile-info">
+                    <div class="profile-name-section">
+                        <h1 class="profile-name" id="profileName">Анастасия</h1>
+                        <div class="profile-badges">
+                            <span class="badge verified">✓ Верифицирована</span>
+                            <span class="badge premium">👑 Premium</span>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-stats">
+                        <div class="stat">
+                            <span class="stat-number">156</span>
+                            <span class="stat-label">фото</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">2.4к</span>
+                            <span class="stat-label">подписчики</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">89</span>
+                            <span class="stat-label">съемки</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">4.9</span>
+                            <span class="stat-label">рейтинг</span>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-description">
+                        <p>Профессиональная модель 📸 Fashion & Commercial<br>
+                        Москва 🏙️ Доступна для съемок<br>
+                        Опыт работы: 5+ лет ✨<br>
+                        📧 anastasia.model@email.com</p>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button class="btn btn-outline btn-action" id="subscribeBtn" onclick="toggleSubscription()">
+                            <span id="subscribeIcon">🔔</span>
+                            <span id="subscribeText">Подписаться</span>
+                        </button>
+                        <button class="btn btn-outline btn-action" onclick="sendMessage()">
+                            <span>✉️ Написать</span>
+                        </button>
+                        <button class="btn btn-primary btn-action" id="bookingBtn" onclick="openBookingModal()">
+                            <span>📅 Забронировать</span>
+                        </button>
+                        <button class="btn btn-gradient btn-action" onclick="openDonateModal()">
+                            <span>💎 Донат</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Навигация по контенту -->
+            <div class="content-nav">
+                <button class="content-tab active" data-tab="posts">
+                    <span class="tab-icon">📷</span>
+                    <span>Посты</span>
+                </button>
+                <button class="content-tab" data-tab="videos">
+                    <span class="tab-icon">🎥</span>
+                    <span>Видео</span>
+                </button>
+                <button class="content-tab" data-tab="reviews">
+                    <span class="tab-icon">⭐</span>
+                    <span>Отзывы</span>
+                </button>
+                <button class="content-tab" data-tab="premium">
+                    <span class="tab-icon">👑</span>
+                    <span>Premium</span>
+                </button>
+                <button class="content-tab" data-tab="about">
+                    <span class="tab-icon">ℹ️</span>
+                    <span>О себе</span>
+                </button>
+            </div>
+
+            <!-- Контент -->
+            <div class="profile-content">
+                <!-- Посты -->
+                <div class="content-section active" id="posts">
+                    <div class="posts-grid">
+                        <!-- Посты будут добавлены через JS -->
+                    </div>
+                </div>
+
+                <!-- Видео -->
+                <div class="content-section" id="videos">
+                    <div class="videos-grid">
+                        <!-- Видео будут добавлены через JS -->
+                    </div>
+                </div>
+
+                <!-- Отзывы -->
+                <div class="content-section" id="reviews">
+                    <div class="reviews-header">
+                        <div class="reviews-summary">
+                            <div class="rating-big">
+                                <span class="rating-number" id="averageRating">4.9</span>
+                                <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+                                <span class="reviews-count" id="totalReviews">127 отзывов</span>
+                            </div>
+                            <div class="rating-breakdown">
+                                <div class="rating-bar-item">
+                                    <span class="rating-label">5 ⭐</span>
+                                    <div class="rating-bar">
+                                        <div class="rating-bar-fill" style="width: 85%"></div>
+                                    </div>
+                                    <span class="rating-count">108</span>
+                                </div>
+                                <div class="rating-bar-item">
+                                    <span class="rating-label">4 ⭐</span>
+                                    <div class="rating-bar">
+                                        <div class="rating-bar-fill" style="width: 10%"></div>
+                                    </div>
+                                    <span class="rating-count">13</span>
+                                </div>
+                                <div class="rating-bar-item">
+                                    <span class="rating-label">3 ⭐</span>
+                                    <div class="rating-bar">
+                                        <div class="rating-bar-fill" style="width: 3%"></div>
+                                    </div>
+                                    <span class="rating-count">4</span>
+                                </div>
+                                <div class="rating-bar-item">
+                                    <span class="rating-label">2 ⭐</span>
+                                    <div class="rating-bar">
+                                        <div class="rating-bar-fill" style="width: 1%"></div>
+                                    </div>
+                                    <span class="rating-count">1</span>
+                                </div>
+                                <div class="rating-bar-item">
+                                    <span class="rating-label">1 ⭐</span>
+                                    <div class="rating-bar">
+                                        <div class="rating-bar-fill" style="width: 1%"></div>
+                                    </div>
+                                    <span class="rating-count">1</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="openReviewModal()">
+                            Оставить отзыв
+                        </button>
+                    </div>
+                    
+                    <div class="reviews-filters">
+                        <button class="filter-btn active" data-filter="all">Все отзывы</button>
+                        <button class="filter-btn" data-filter="5">5 звезд</button>
+                        <button class="filter-btn" data-filter="4">4 звезды</button>
+                        <button class="filter-btn" data-filter="3">3 звезды</button>
+                        <button class="filter-btn" data-filter="verified">С фото</button>
+                    </div>
+                    
+                    <div class="reviews-list" id="reviewsList">
+                        <!-- Отзывы будут добавлены через JS -->
+                    </div>
+                </div>
+
+                <!-- Premium контент -->
+                <div class="content-section" id="premium">
+                    <!-- Баннер для неподписанных (будет скрыт если есть Premium) -->
+                    <div class="premium-locked-banner" id="premiumLockedBanner">
+                        <div class="premium-banner-content">
+                            <div class="premium-banner-icon">👑</div>
+                            <h2>Premium контент</h2>
+                            <p>Эксклюзивные фото и видео доступны только подписчикам</p>
+                            <button class="btn btn-gradient btn-large" onclick="openPremiumModal()">
+                                Подписаться за 8000 ₽/мес
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Заблокированный контент (превью) -->
+                    <div class="premium-locked-grid" id="premiumLockedGrid">
+                        <div class="locked-item">
+                            <div class="locked-overlay">
+                                <span class="lock-icon">🔒</span>
+                            </div>
+                        </div>
+                        <div class="locked-item">
+                            <div class="locked-overlay">
+                                <span class="lock-icon">🔒</span>
+                            </div>
+                        </div>
+                        <div class="locked-item">
+                            <div class="locked-overlay">
+                                <span class="lock-icon">🔒</span>
+                            </div>
+                        </div>
+                        <div class="locked-item">
+                            <div class="locked-overlay">
+                                <span class="lock-icon">🔒</span>
+                            </div>
+                        </div>
+                        <div class="locked-item">
+                            <div class="locked-overlay">
+                                <span class="lock-icon">🔒</span>
+                            </div>
+                        </div>
+                        <div class="locked-item">
+                            <div class="locked-overlay">
+                                <span class="lock-icon">🔒</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Разблокированный Premium контент (будет показан если есть подписка) -->
+                    <div class="premium-unlocked-content" id="premiumUnlockedContent" style="display: none;">
+                        <div class="premium-active-badge">
+                            <span class="badge-icon">👑</span>
+                            <span>Premium активен</span>
+                            <span class="badge-expires" id="premiumExpiresText"></span>
+                        </div>
+                        
+                        <div class="premium-grid" id="premiumContentGrid">
+                            <!-- Premium контент будет добавлен через JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- О себе -->
+                <div class="content-section" id="about">
+                    <div class="about-content">
+                        <div class="about-section">
+                            <h3>Обо мне</h3>
+                            <p>Привет! Меня зовут Анастасия, и я профессиональная модель с 5-летним опытом работы в индустрии моды. Специализируюсь на fashion и commercial съемках.</p>
+                            
+                            <h4>Опыт работы:</h4>
+                            <ul>
+                                <li>Fashion Week Moscow 2023</li>
+                                <li>Рекламные кампании для ведущих брендов</li>
+                                <li>Съемки для глянцевых журналов</li>
+                                <li>Коммерческие проекты</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="about-section">
+                            <h3>Параметры</h3>
+                            <div class="parameters">
+                                <div class="param">
+                                    <span class="param-label">Возраст:</span>
+                                    <span class="param-value">24 года</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Рост:</span>
+                                    <span class="param-value">175 см</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Размер:</span>
+                                    <span class="param-value">42-44</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Цвет глаз:</span>
+                                    <span class="param-value">Карие</span>
+                                </div>
+                                <div class="param">
+                                    <span class="param-label">Цвет волос:</span>
+                                    <span class="param-value">Темно-русый</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="about-section">
+                            <h3>Услуги и цены</h3>
+                            <div class="services">
+                                <div class="service">
+                                    <span class="service-name">Fashion съемка</span>
+                                    <span class="service-price">8000 ₽/час</span>
+                                </div>
+                                <div class="service">
+                                    <span class="service-name">Commercial съемка</span>
+                                    <span class="service-price">10000 ₽/час</span>
+                                </div>
+                                <div class="service">
+                                    <span class="service-name">Подиумный показ</span>
+                                    <span class="service-price">15000 ₽/показ</span>
+                                </div>
+                                <div class="service">
+                                    <span class="service-name">Фотосессия (2 часа)</span>
+                                    <span class="service-price">14000 ₽</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальное окно для просмотра фото -->
+    <div class="modal" id="photoModal">
+        <div class="modal-content modal-photo-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            
+            <div class="modal-photo-container">
+                <!-- Левая часть - изображение -->
+                <div class="modal-image-section">
+                    <img src="" alt="" id="modalImage">
+                    <div class="modal-nav">
+                        <button class="modal-nav-btn" id="prevBtn" onclick="prevImage()">‹</button>
+                        <button class="modal-nav-btn" id="nextBtn" onclick="nextImage()">›</button>
+                    </div>
+                </div>
+                
+                <!-- Правая часть - информация, лайки и комментарии -->
+                <div class="modal-info-section">
+                    <!-- Шапка с информацией о модели -->
+                    <div class="modal-header-info">
+                        <img src="" alt="" class="modal-user-avatar" id="modalUserAvatar">
+                        <div class="modal-user-details">
+                            <h4 id="modalUserName">Анастасия</h4>
+                            <span class="modal-post-time" id="modalPostTime">2 часа назад</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Описание поста -->
+                    <div class="modal-post-description">
+                        <p id="modalPostDescription">Новая фотосессия для модного журнала 📸✨</p>
+                    </div>
+                    
+                    <!-- Лайки и действия -->
+                    <div class="modal-actions">
+                        <button class="action-btn like-btn" onclick="toggleLike()" id="likeBtn">
+                            <span class="action-icon">♡</span>
+                            <span class="action-count" id="likeCount">234</span>
+                        </button>
+                        <button class="action-btn comment-btn" onclick="focusCommentInput()">
+                            <span class="action-icon">💬</span>
+                            <span class="action-count" id="commentCount">12</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Список комментариев -->
+                    <div class="modal-comments" id="modalComments">
+                        <!-- Комментарии будут добавлены через JS -->
+                    </div>
+                    
+                    <!-- Форма добавления комментария -->
+                    <div class="modal-comment-form">
+                        <input type="text" 
+                               placeholder="Добавьте комментарий..." 
+                               id="commentInput"
+                               onkeypress="handleCommentKeyPress(event)">
+                        <button class="btn btn-primary btn-small" onclick="addComment()">
+                            Отправить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для видео -->
+    <div class="modal" id="videoModal">
+        <div class="modal-content modal-video-content">
+            <button class="modal-close" onclick="closeVideoModal()">&times;</button>
+            
+            <div class="modal-video-container">
+                <!-- Левая часть - видео -->
+                <div class="modal-video-section">
+                    <video id="modalVideo" controls autoplay>
+                        <source src="" type="video/mp4">
+                        Ваш браузер не поддерживает видео.
+                    </video>
+                </div>
+                
+                <!-- Правая часть - информация, лайки и комментарии -->
+                <div class="modal-info-section">
+                    <!-- Шапка с информацией о модели -->
+                    <div class="modal-header-info">
+                        <img src="" alt="" class="modal-user-avatar" id="modalVideoUserAvatar">
+                        <div class="modal-user-details">
+                            <h4 id="modalVideoUserName">Анастасия</h4>
+                            <span class="modal-post-time" id="modalVideoPostTime">2 часа назад</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Описание видео -->
+                    <div class="modal-post-description">
+                        <h3 id="modalVideoTitle">Название видео</h3>
+                        <p id="modalVideoDescription">Описание видео</p>
+                        <div class="video-stats-info">
+                            <span id="modalVideoViews">1,234 просмотров</span>
+                            <span>•</span>
+                            <span id="modalVideoDate">2 часа назад</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Лайки и действия -->
+                    <div class="modal-actions">
+                        <button class="action-btn like-btn" onclick="toggleVideoLike()" id="videoLikeBtn">
+                            <span class="action-icon">♡</span>
+                            <span class="action-count" id="videoLikeCount">234</span>
+                        </button>
+                        <button class="action-btn comment-btn" onclick="focusVideoCommentInput()">
+                            <span class="action-icon">💬</span>
+                            <span class="action-count" id="videoCommentCount">12</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Список комментариев -->
+                    <div class="modal-comments" id="modalVideoComments">
+                        <!-- Комментарии будут добавлены через JS -->
+                    </div>
+                    
+                    <!-- Форма добавления комментария -->
+                    <div class="modal-comment-form">
+                        <input type="text" 
+                               placeholder="Добавьте комментарий..." 
+                               id="videoCommentInput"
+                               onkeypress="handleVideoCommentKeyPress(event)">
+                        <button class="btn btn-primary btn-small" onclick="addVideoComment()">
+                            Отправить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для отзыва -->
+    <div class="modal" id="reviewModal">
+        <div class="modal-content modal-review-content">
+            <button class="modal-close" onclick="closeReviewModal()">&times;</button>
+            <h2>Оставить отзыв</h2>
+            
+            <div class="review-form">
+                <div class="form-group">
+                    <label>Ваша оценка</label>
+                    <div class="star-rating" id="starRating">
+                        <span class="star" data-rating="1">☆</span>
+                        <span class="star" data-rating="2">☆</span>
+                        <span class="star" data-rating="3">☆</span>
+                        <span class="star" data-rating="4">☆</span>
+                        <span class="star" data-rating="5">☆</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ваш отзыв</label>
+                    <textarea id="reviewText" 
+                              placeholder="Расскажите о вашем опыте работы с моделью..." 
+                              rows="5"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Добавить фото (необязательно)</label>
+                    <input type="file" id="reviewPhoto" accept="image/*" multiple>
+                </div>
+                
+                <button class="btn btn-primary btn-large" onclick="submitReview()">
+                    Опубликовать отзыв
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для донатов и подарков -->
+    <div class="modal" id="donateModal" onclick="closeModalOnOverlay(event, 'donateModal')">
+        <div class="modal-content modal-donate-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeDonateModal()">✕</button>
+            <h2>💎 Поддержать модель</h2>
+            
+            <div class="donate-tabs">
+                <button class="donate-tab active" data-tab="donate" onclick="switchDonateTab('donate')">
+                    💰 Донат
+                </button>
+                <button class="donate-tab" data-tab="gifts" onclick="switchDonateTab('gifts')">
+                    🎁 Подарки
+                </button>
+                <button class="donate-tab" data-tab="paid-message" onclick="switchDonateTab('paid-message')">
+                    ✉️ Платное сообщение
+                </button>
+            </div>
+            
+            <!-- Донат -->
+            <div class="donate-section active" id="donate-section">
+                <p class="donate-description">Отправьте донат модели и ваше сообщение будет выделено</p>
+                
+                <div class="amount-buttons">
+                    <button class="amount-btn" onclick="selectAmount(100)">100 ₽</button>
+                    <button class="amount-btn" onclick="selectAmount(500)">500 ₽</button>
+                    <button class="amount-btn" onclick="selectAmount(1000)">1000 ₽</button>
+                    <button class="amount-btn" onclick="selectAmount(2000)">2000 ₽</button>
+                    <button class="amount-btn" onclick="selectAmount(5000)">5000 ₽</button>
+                    <button class="amount-btn" onclick="selectAmount(10000)">10000 ₽</button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Или введите свою сумму</label>
+                    <input type="number" id="customAmount" placeholder="Введите сумму в рублях" min="50">
+                </div>
+                
+                <div class="form-group">
+                    <label>Сообщение (необязательно)</label>
+                    <textarea id="donateMessage" placeholder="Напишите сообщение для модели..." rows="3"></textarea>
+                </div>
+                
+                <div class="commission-info">
+                    <span>Комиссия платформы: 15%</span>
+                    <span id="modelReceives">Модель получит: 0 ₽</span>
+                </div>
+                
+                <button class="btn btn-gradient btn-large" onclick="sendDonate()">
+                    Отправить донат
+                </button>
+            </div>
+            
+            <!-- Подарки -->
+            <div class="donate-section" id="gifts-section">
+                <p class="donate-description">Отправьте виртуальный подарок модели</p>
+                
+                <div class="gifts-grid">
+                    <div class="gift-item" onclick="selectGift(1, 50)">
+                        <div class="gift-icon">🌹</div>
+                        <div class="gift-name">Роза</div>
+                        <div class="gift-price">50 ₽</div>
+                    </div>
+                    <div class="gift-item" onclick="selectGift(2, 100)">
+                        <div class="gift-icon">💐</div>
+                        <div class="gift-name">Букет</div>
+                        <div class="gift-price">100 ₽</div>
+                    </div>
+                    <div class="gift-item" onclick="selectGift(3, 200)">
+                        <div class="gift-icon">🍫</div>
+                        <div class="gift-name">Конфеты</div>
+                        <div class="gift-price">200 ₽</div>
+                    </div>
+                    <div class="gift-item" onclick="selectGift(4, 300)">
+                        <div class="gift-icon">🍾</div>
+                        <div class="gift-name">Шампанское</div>
+                        <div class="gift-price">300 ₽</div>
+                    </div>
+                    <div class="gift-item" onclick="selectGift(5, 500)">
+                        <div class="gift-icon">💎</div>
+                        <div class="gift-name">Бриллиант</div>
+                        <div class="gift-price">500 ₽</div>
+                    </div>
+                    <div class="gift-item" onclick="selectGift(6, 1000)">
+                        <div class="gift-icon">👑</div>
+                        <div class="gift-name">Корона</div>
+                        <div class="gift-price">1000 ₽</div>
+                    </div>
+                    <div class="gift-item" onclick="selectGift(7, 2000)">
+                        <div class="gift-icon">🚗</div>
+                        <div class="gift-name">Автомобиль</div>
+                        <div class="gift-price">2000 ₽</div>
+                    </div>
+                    <div class="gift-item" onclick="selectGift(8, 5000)">
+                        <div class="gift-icon">🏝️</div>
+                        <div class="gift-name">Остров</div>
+                        <div class="gift-price">5000 ₽</div>
+                    </div>
+                </div>
+                
+                <div class="selected-gift" id="selectedGift" style="display: none;">
+                    <p>Выбран подарок: <span id="selectedGiftName"></span></p>
+                    <p>Стоимость: <span id="selectedGiftPrice"></span> ₽</p>
+                </div>
+                
+                <button class="btn btn-gradient btn-large" onclick="sendGift()" id="sendGiftBtn" disabled>
+                    Отправить подарок
+                </button>
+            </div>
+            
+            <!-- Платное сообщение -->
+            <div class="donate-section" id="paid-message-section">
+                <p class="donate-description">Ваше сообщение будет приоритетным и гарантированно прочитано</p>
+                
+                <div class="paid-message-options">
+                    <div class="paid-option" onclick="selectPaidOption('priority', 200)">
+                        <div class="option-icon">⭐</div>
+                        <div class="option-name">Приоритетное</div>
+                        <div class="option-description">Ваше сообщение будет выделено</div>
+                        <div class="option-price">200 ₽</div>
+                    </div>
+                    <div class="paid-option" onclick="selectPaidOption('vip', 500)">
+                        <div class="option-icon">👑</div>
+                        <div class="option-name">VIP сообщение</div>
+                        <div class="option-description">Гарантированный ответ в течение часа</div>
+                        <div class="option-price">500 ₽</div>
+                    </div>
+                    <div class="paid-option" onclick="selectPaidOption('exclusive', 1000)">
+                        <div class="option-icon">💎</div>
+                        <div class="option-name">Эксклюзивное</div>
+                        <div class="option-description">Личное видео-сообщение в ответ</div>
+                        <div class="option-price">1000 ₽</div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Ваше сообщение</label>
+                    <textarea id="paidMessageText" placeholder="Напишите ваше сообщение..." rows="4"></textarea>
+                </div>
+                
+                <div class="selected-option" id="selectedOption" style="display: none;">
+                    <p>Выбран тариф: <span id="selectedOptionName"></span></p>
+                    <p>Стоимость: <span id="selectedOptionPrice"></span> ₽</p>
+                </div>
+                
+                <button class="btn btn-gradient btn-large" onclick="sendPaidMessage()" id="sendPaidMessageBtn" disabled>
+                    Отправить сообщение
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно Premium подписки -->
+    <div class="modal" id="premiumModal" onclick="closeModalOnOverlay(event, 'premiumModal')">
+        <div class="modal-content modal-donate-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closePremiumModal()">✕</button>
+            <h2 style="text-align: center; margin-bottom: 10px;">👑 Premium подписка</h2>
+            <p style="text-align: center; color: #718096; margin-bottom: 30px;">Получите эксклюзивный доступ к контенту модели</p>
+            
+            <div class="premium-benefits">
+                <div class="benefit-item">
+                    <span class="benefit-icon">✨</span>
+                    <div>
+                        <h4>Эксклюзивный контент</h4>
+                        <p>Доступ к закрытым фото и видео</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-icon">💬</span>
+                    <div>
+                        <h4>Приоритет в сообщениях</h4>
+                        <p>Ваши сообщения всегда на первом месте</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-icon">🎁</span>
+                    <div>
+                        <h4>Специальные бонусы</h4>
+                        <p>Скидки на услуги и подарки</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-icon">👑</span>
+                    <div>
+                        <h4>VIP статус</h4>
+                        <p>Значок Premium в профиле</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="premium-plans">
+                <div class="premium-plan" onclick="selectPremiumPlan('month', 8000)">
+                    <div class="plan-header">
+                        <h3>1 месяц</h3>
+                        <div class="plan-price">8 000 ₽</div>
+                    </div>
+                    <p class="plan-description">Попробуйте Premium</p>
+                </div>
+                
+                <div class="premium-plan premium-plan-popular" onclick="selectPremiumPlan('3months', 21000)">
+                    <div class="plan-badge">Популярно</div>
+                    <div class="plan-header">
+                        <h3>3 месяца</h3>
+                        <div class="plan-price">21 000 ₽</div>
+                        <div class="plan-save">Экономия 3 000 ₽</div>
+                    </div>
+                    <p class="plan-description">7 000 ₽/месяц</p>
+                </div>
+                
+                <div class="premium-plan" onclick="selectPremiumPlan('year', 72000)">
+                    <div class="plan-header">
+                        <h3>12 месяцев</h3>
+                        <div class="plan-price">72 000 ₽</div>
+                        <div class="plan-save">Экономия 24 000 ₽</div>
+                    </div>
+                    <p class="plan-description">6 000 ₽/месяц</p>
+                </div>
+            </div>
+            
+            <div class="selected-premium-plan" id="selectedPremiumPlan" style="display: none;">
+                <p>Выбран тариф: <span id="selectedPremiumPlanName"></span></p>
+                <p>Стоимость: <span id="selectedPremiumPlanPrice"></span> ₽</p>
+            </div>
+            
+            <button class="btn btn-gradient btn-large" onclick="purchasePremium()" id="purchasePremiumBtn" disabled>
+                Оформить Premium подписку
+            </button>
+        </div>
+    </div>
+
+    <!-- Модальное окно бронирования -->
+    <div class="modal" id="bookingModal" onclick="closeModalOnOverlay(event, 'bookingModal')">
+        <div class="modal-content modal-donate-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeBookingModal()">✕</button>
+            <h2 style="text-align: center; margin-bottom: 10px;">📅 Забронировать встречу</h2>
+            <p style="text-align: center; color: #718096; margin-bottom: 30px;">Выберите дату, время и длительность встречи</p>
+            
+            <div class="booking-form">
+                <!-- Выбор даты -->
+                <div class="form-group">
+                    <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 10px; font-size: 15px;">
+                        📆 Дата встречи
+                    </label>
+                    <input type="date" 
+                           id="bookingDate" 
+                           class="booking-input"
+                           min=""
+                           onchange="updateBookingSummary()"
+                           style="width: 100%; padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; font-family: inherit;">
+                </div>
+                
+                <!-- Выбор времени -->
+                <div class="form-group">
+                    <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 10px; font-size: 15px;">
+                        🕐 Время начала
+                    </label>
+                    <select id="bookingTime" 
+                            class="booking-input"
+                            onchange="updateBookingSummary()"
+                            style="width: 100%; padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; font-family: inherit;">
+                        <option value="">Выберите время</option>
+                        <option value="09:00">09:00</option>
+                        <option value="10:00">10:00</option>
+                        <option value="11:00">11:00</option>
+                        <option value="12:00">12:00</option>
+                        <option value="13:00">13:00</option>
+                        <option value="14:00">14:00</option>
+                        <option value="15:00">15:00</option>
+                        <option value="16:00">16:00</option>
+                        <option value="17:00">17:00</option>
+                        <option value="18:00">18:00</option>
+                        <option value="19:00">19:00</option>
+                        <option value="20:00">20:00</option>
+                        <option value="21:00">21:00</option>
+                        <option value="22:00">22:00</option>
+                    </select>
+                </div>
+                
+                <!-- Выбор длительности -->
+                <div class="form-group">
+                    <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 10px; font-size: 15px;">
+                        ⏱️ Длительность
+                    </label>
+                    <div class="duration-buttons">
+                        <button class="duration-btn" onclick="selectDuration(1, 8000)">
+                            <div class="duration-hours">1 час</div>
+                            <div class="duration-price">8 000 ₽</div>
+                        </button>
+                        <button class="duration-btn" onclick="selectDuration(2, 15000)">
+                            <div class="duration-hours">2 часа</div>
+                            <div class="duration-price">15 000 ₽</div>
+                            <div class="duration-save">-1 000 ₽</div>
+                        </button>
+                        <button class="duration-btn" onclick="selectDuration(3, 21000)">
+                            <div class="duration-hours">3 часа</div>
+                            <div class="duration-price">21 000 ₽</div>
+                            <div class="duration-save">-3 000 ₽</div>
+                        </button>
+                        <button class="duration-btn" onclick="selectDuration(4, 28000)">
+                            <div class="duration-hours">4 часа</div>
+                            <div class="duration-price">28 000 ₽</div>
+                            <div class="duration-save">-4 000 ₽</div>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Комментарий -->
+                <div class="form-group">
+                    <label style="display: block; font-weight: 600; color: #2d3748; margin-bottom: 10px; font-size: 15px;">
+                        💬 Комментарий (необязательно)
+                    </label>
+                    <textarea id="bookingComment" 
+                              placeholder="Опишите детали встречи, пожелания..."
+                              style="width: 100%; padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; font-family: inherit; min-height: 80px; resize: vertical;"></textarea>
+                </div>
+                
+                <!-- Итоговая информация -->
+                <div class="booking-summary" id="bookingSummary" style="display: none;">
+                    <h3 style="font-size: 16px; font-weight: 700; color: #2d3748; margin-bottom: 15px;">📋 Детали бронирования</h3>
+                    <div style="background: #f7fafc; padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: #718096;">Дата:</span>
+                            <span style="font-weight: 600; color: #2d3748;" id="summaryDate">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: #718096;">Время:</span>
+                            <span style="font-weight: 600; color: #2d3748;" id="summaryTime">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: #718096;">Длительность:</span>
+                            <span style="font-weight: 600; color: #2d3748;" id="summaryDuration">-</span>
+                        </div>
+                        <div style="border-top: 2px solid #e2e8f0; margin: 15px 0; padding-top: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 18px; font-weight: 700; color: #2d3748;">Итого:</span>
+                                <span style="font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;" id="summaryPrice">0 ₽</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p style="font-size: 13px; color: #718096; text-align: center; margin-bottom: 20px;">
+                        ℹ️ Модель получит уведомление о вашем запросе на бронирование
+                    </p>
+                </div>
+                
+                <button class="btn btn-gradient btn-large" onclick="confirmBooking()" id="confirmBookingBtn" disabled>
+                    Отправить запрос на бронирование
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/database.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/profile.js"></script>
+    <script>
+        // Проверка авторизации при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentUser = localStorage.getItem('currentUser');
+            const authButtons = document.getElementById('authButtons');
+            
+            if (currentUser) {
+                const userData = JSON.parse(currentUser);
+                if (userData.isLoggedIn && !userData.isGuest) {
+                    // Пользователь авторизован - показываем профиль
+                    authButtons.innerHTML = `
+                        <div class="user-menu" onclick="toggleUserMenu()">
+                            <img src="${userData.avatar}" alt="Avatar" class="user-avatar" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+                            <span class="user-name" style="font-weight: 600; color: #2d3748; margin: 0 10px;">${userData.name}</span>
+                            <div class="dropdown-menu" id="dropdownMenu" style="position: absolute; top: 100%; right: 0; background: white; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 10px 0; min-width: 180px; display: none; z-index: 100;">
+                                <a href="user-profile.html" style="display: block; padding: 10px 15px; color: #4a5568; text-decoration: none; transition: background 0.3s ease;" onmouseover="this.style.background='#f7fafc'; this.style.color='#667eea'" onmouseout="this.style.background=''; this.style.color='#4a5568'">Мой профиль</a>
+                                <a href="#" onclick="logout()" style="display: block; padding: 10px 15px; color: #4a5568; text-decoration: none; transition: background 0.3s ease;" onmouseover="this.style.background='#f7fafc'; this.style.color='#667eea'" onmouseout="this.style.background=''; this.style.color='#4a5568'">Выйти</a>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Добавляем стили для пользовательского меню
+                    authButtons.style.position = 'relative';
+                }
+            }
+        });
+        
+        // Переключение пользовательского меню
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('dropdownMenu');
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            }
+        }
+        
+        // Закрытие меню при клике вне его
+        document.addEventListener('click', function(e) {
+            const userMenu = document.querySelector('.user-menu');
+            const dropdown = document.getElementById('dropdownMenu');
+            
+            if (userMenu && dropdown && !userMenu.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+        
+        // Выход из аккаунта
+        function logout() {
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('rememberUser');
+            location.reload();
+        }
+        
+        // Предотвращаем прыжки скролла при перезагрузке
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+        window.addEventListener('beforeunload', function() {
+            window.scrollTo(0, 0);
+        });
+    </script>
+</body>
+</html>

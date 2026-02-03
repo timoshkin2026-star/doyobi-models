@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru" style="overflow-y: scroll !important; height: 100%;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сообщения - Дойоби</title>
+    <style>
+        /* Критический CSS для предотвращения прыжков - ПРИМЕНЯЕТСЯ МГНОВЕННО */
+        html { overflow-y: scroll !important; height: 100%; width: 100vw; overflow-x: hidden; }
+        body { min-height: 100vh !important; margin: 0; padding: 0; }
+        .messages-main { min-height: 100vh !important; }
+        .messages-container { min-height: 600px !important; }
+    </style>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/messages.css">
+</head>
+<body style="min-height: 100vh !important;">
+    <script>
+        // КРИТИЧНО: Выполняется ДО отрисовки страницы
+        document.documentElement.style.overflowY = 'scroll';
+        document.documentElement.style.height = '100%';
+        document.body.style.minHeight = '100vh';
+    </script>
+    <!-- Хедер -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1><a href="index.html">Дойоби</a></h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Главная</a>
+                <a href="messages.html" class="nav-link">Сообщения</a>
+            </nav>
+            <div class="auth-buttons" id="authButtons">
+                <!-- Контент будет загружен через inline script -->
+            </div>
+        </div>
+    </header>
+    
+    <script>
+        // Синхронная загрузка меню ДО отрисовки страницы
+        (function() {
+            const currentUserData = localStorage.getItem('currentUser');
+            const authButtons = document.getElementById('authButtons');
+            
+            if (currentUserData) {
+                try {
+                    const userData = JSON.parse(currentUserData);
+                    
+                    // Упрощенная проверка - если есть id и email, значит авторизован
+                    if (userData.id && userData.email && userData.isGuest !== true) {
+                        authButtons.innerHTML = `
+                            <div class="user-menu" onclick="toggleUserMenuHeader()" style="display: flex; align-items: center; gap: 10px; cursor: pointer; position: relative; width: 100%; justify-content: flex-end;">
+                                <img src="${userData.avatar}" alt="Avatar" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+                                <span style="font-weight: 600; color: #2d3748; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">${userData.name}</span>
+                                <div class="dropdown-menu" id="dropdownMenuHeader" style="position: absolute; top: 100%; right: 0; background: white; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 10px 0; min-width: 180px; display: none; z-index: 100; margin-top: 10px;">
+                                    <a href="user-profile.html" style="display: block; padding: 10px 15px; color: #4a5568; text-decoration: none; transition: background 0.3s ease;" onmouseover="this.style.background='#f7fafc'; this.style.color='#667eea'" onmouseout="this.style.background=''; this.style.color='#4a5568'">Мой профиль</a>
+                                    <a href="#" onclick="logout()" style="display: block; padding: 10px 15px; color: #4a5568; text-decoration: none; transition: background 0.3s ease;" onmouseover="this.style.background='#f7fafc'; this.style.color='#667eea'" onmouseout="this.style.background=''; this.style.color='#4a5568'">Выйти</a>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        authButtons.innerHTML = `
+                            <a href="auth.html" class="btn btn-outline" style="flex-shrink: 0;">Войти</a>
+                            <a href="auth.html?register=true" class="btn btn-primary" style="flex-shrink: 0;">Регистрация</a>
+                        `;
+                    }
+                } catch (e) {
+                    authButtons.innerHTML = `
+                        <a href="auth.html" class="btn btn-outline" style="flex-shrink: 0;">Войти</a>
+                        <a href="auth.html?register=true" class="btn btn-primary" style="flex-shrink: 0;">Регистрация</a>
+                    `;
+                }
+            } else {
+                authButtons.innerHTML = `
+                    <a href="auth.html" class="btn btn-outline" style="flex-shrink: 0;">Войти</a>
+                    <a href="auth.html?register=true" class="btn btn-primary" style="flex-shrink: 0;">Регистрация</a>
+                `;
+            }
+        })();
+    </script>
+
+    <!-- Основной контент -->
+    <main class="messages-main">
+        <div class="container">
+            <div class="messages-container">
+                <!-- Список чатов -->
+                <div class="chats-sidebar">
+                    <div class="chats-header">
+                        <h2>Сообщения</h2>
+                        <button class="btn btn-primary btn-small" onclick="startNewChat()">
+                            Новый чат
+                        </button>
+                    </div>
+                    
+                    <div class="search-box">
+                        <input type="text" placeholder="Поиск чатов..." id="chatSearch" oninput="searchChats()">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                    
+                    <div class="chats-list" id="chatsList">
+                        <!-- Чаты будут добавлены через JS -->
+                    </div>
+                </div>
+
+                <!-- Область чата -->
+                <div class="chat-area">
+                    <!-- Пустое состояние -->
+                    <div class="empty-chat" id="emptyChat">
+                        <div class="empty-content">
+                            <div class="empty-icon">💬</div>
+                            <h3>Выберите чат</h3>
+                            <p>Выберите существующий чат или начните новый разговор</p>
+                            <button class="btn btn-primary" onclick="startNewChat()">
+                                Начать новый чат
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Активный чат -->
+                    <div class="active-chat hidden" id="activeChat">
+                        <!-- Шапка чата -->
+                        <div class="chat-header">
+                            <div class="chat-user-info">
+                                <img src="" alt="Avatar" class="chat-avatar" id="chatAvatar">
+                                <div class="chat-user-details">
+                                    <h3 class="chat-user-name" id="chatUserName"></h3>
+                                    <span class="chat-user-status" id="chatUserStatus">онлайн</span>
+                                </div>
+                            </div>
+                            <div class="chat-actions">
+                                <button class="chat-action-btn" onclick="makeVideoCall()" title="Видеозвонок">📹</button>
+                                <button class="chat-action-btn" onclick="makeVoiceCall()" title="Голосовой звонок">📞</button>
+                                <button class="chat-action-btn" onclick="showChatInfo()" title="Информация">ℹ️</button>
+                            </div>
+                        </div>
+
+                        <!-- Сообщения -->
+                        <div class="messages-area" id="messagesArea">
+                            <!-- Сообщения будут добавлены через JS -->
+                        </div>
+
+                        <!-- Поле ввода -->
+                        <div class="message-input-area">
+                            <div class="message-input-container">
+                                <button class="attach-btn" onclick="attachFile()" title="Прикрепить файл">📎</button>
+                                <input type="text" 
+                                       placeholder="Напишите сообщение..." 
+                                       id="messageInput" 
+                                       onkeypress="handleMessageKeyPress(event)"
+                                       maxlength="1000">
+                                <button class="emoji-btn" onclick="showEmojiPicker()" title="Эмодзи">😊</button>
+                                <button class="send-btn" onclick="sendMessage()" title="Отправить">➤</button>
+                            </div>
+                            <div class="typing-indicator hidden" id="typingIndicator">
+                                <span class="typing-text">печатает...</span>
+                                <div class="typing-dots">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальное окно нового чата -->
+    <div class="modal" id="newChatModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Новый чат</h3>
+                <button class="modal-close" onclick="closeNewChatModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="search-users">
+                    <input type="text" placeholder="Поиск пользователей..." id="userSearch" oninput="searchUsers()">
+                </div>
+                <div class="users-list" id="usersList">
+                    <!-- Пользователи будут добавлены через JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно информации о чате -->
+    <div class="modal" id="chatInfoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Информация о чате</h3>
+                <button class="modal-close" onclick="closeChatInfoModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="chat-info-content" id="chatInfoContent">
+                    <!-- Информация будет добавлена через JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/messages.js"></script>
+    <script>
+        // Предотвращаем прыжки скролла при перезагрузке
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+        window.addEventListener('beforeunload', function() {
+            window.scrollTo(0, 0);
+        });
+    </script>
+</body>
+</html>

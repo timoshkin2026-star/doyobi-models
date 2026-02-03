@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход / Регистрация - Дойоби</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+    <!-- Хедер -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1><a href="index.html">Дойоби</a></h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Главная</a>
+                <a href="#" class="nav-link">Модели</a>
+                <a href="#" class="nav-link">Кастинги</a>
+                <a href="#" class="nav-link">О нас</a>
+                <a href="#" class="nav-link">Контакты</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="auth-main">
+        <div class="container">
+            <div class="auth-container">
+                <!-- Форма входа -->
+                <div class="auth-form" id="loginForm">
+                    <div class="auth-header">
+                        <h2>Добро пожаловать!</h2>
+                        <p>Войдите в свой аккаунт</p>
+                    </div>
+                    
+                    <form class="form" onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label for="loginEmail">Email</label>
+                            <input type="email" id="loginEmail" required placeholder="your@email.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="loginPassword">Пароль</label>
+                            <input type="password" id="loginPassword" required placeholder="Введите пароль">
+                        </div>
+                        
+                        <div class="form-options">
+                            <label class="checkbox">
+                                <input type="checkbox" id="rememberMe">
+                                <span class="checkmark"></span>
+                                Запомнить меня
+                            </label>
+                            <a href="#" class="forgot-link">Забыли пароль?</a>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-full">Войти</button>
+                    </form>
+                    
+                    <div class="auth-divider">
+                        <span>или</span>
+                    </div>
+                    
+                    <div class="social-login">
+                        <button class="btn btn-social google" onclick="loginWithGoogle()">
+                            <span class="social-icon">G</span>
+                            Войти через Google
+                        </button>
+                        <button class="btn btn-social vk" onclick="loginWithVK()">
+                            <span class="social-icon">VK</span>
+                            Войти через VK
+                        </button>
+                    </div>
+                    
+                    <div class="auth-switch">
+                        <p>Нет аккаунта? <a href="#" onclick="switchToRegister()">Зарегистрироваться</a></p>
+                    </div>
+                </div>
+
+                <!-- Форма регистрации -->
+                <div class="auth-form hidden" id="registerForm">
+                    <div class="auth-header">
+                        <h2>Создать аккаунт</h2>
+                        <p>Присоединяйтесь к ModelHub</p>
+                    </div>
+                    
+                    <form class="form" onsubmit="handleRegister(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="firstName">Имя</label>
+                                <input type="text" id="firstName" required placeholder="Ваше имя">
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName">Фамилия</label>
+                                <input type="text" id="lastName" required placeholder="Ваша фамилия">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="registerEmail">Email</label>
+                            <input type="email" id="registerEmail" required placeholder="your@email.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="registerPassword">Пароль</label>
+                            <input type="password" id="registerPassword" required placeholder="Минимум 8 символов">
+                            <div class="password-strength" id="passwordStrength"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="confirmPassword">Подтвердите пароль</label>
+                            <input type="password" id="confirmPassword" required placeholder="Повторите пароль">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="userType">Тип аккаунта</label>
+                            <select id="userType" required>
+                                <option value="">Выберите тип</option>
+                                <option value="client">Клиент</option>
+                                <option value="model">Модель</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-options">
+                            <label class="checkbox">
+                                <input type="checkbox" id="agreeTerms" required>
+                                <span class="checkmark"></span>
+                                Я согласен с <a href="#" target="_blank">условиями использования</a> и <a href="#" target="_blank">политикой конфиденциальности</a>
+                            </label>
+                        </div>
+                        
+                        <div class="form-options">
+                            <label class="checkbox">
+                                <input type="checkbox" id="newsletter">
+                                <span class="checkmark"></span>
+                                Получать новости и предложения
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-full">Создать аккаунт</button>
+                    </form>
+                    
+                    <div class="auth-switch">
+                        <p>Уже есть аккаунт? <a href="#" onclick="switchToLogin()">Войти</a></p>
+                    </div>
+                </div>
+
+                <!-- Боковая панель -->
+                <div class="auth-sidebar">
+                    <div class="sidebar-content">
+                        <h3>Присоединяйтесь к Дойоби</h3>
+                        <ul class="features-list">
+                            <li>
+                                <span class="feature-icon">🎯</span>
+                                <div>
+                                    <strong>Найдите идеальную модель</strong>
+                                    <p>Тысячи профессиональных моделей</p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="feature-icon">💬</span>
+                                <div>
+                                    <strong>Прямое общение</strong>
+                                    <p>Обсуждайте детали проекта напрямую</p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="feature-icon">⭐</span>
+                                <div>
+                                    <strong>Система рейтингов</strong>
+                                    <p>Отзывы и оценки от реальных клиентов</p>
+                                </div>
+                            </li>
+                            <li>
+                                <span class="feature-icon">🔒</span>
+                                <div>
+                                    <strong>Безопасные сделки</strong>
+                                    <p>Защищенные платежи и гарантии</p>
+                                </div>
+                            </li>
+                        </ul>
+                        
+                        <div class="stats">
+                            <div class="stat">
+                                <span class="stat-number">5000+</span>
+                                <span class="stat-label">Моделей</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">15000+</span>
+                                <span class="stat-label">Клиентов</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">50000+</span>
+                                <span class="stat-label">Проектов</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+</body>
+</html>
