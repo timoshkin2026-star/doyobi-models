@@ -12,7 +12,8 @@ function loadModelsFromDatabase() {
     
     return models.map(user => ({
         id: user.id,
-        name: user.name || 'Без имени',
+        name: user.username ? '@' + user.username : (user.name || 'Без имени'),
+        username: user.username,
         age: user.age || 25,
         category: user.category || 'Fashion',
         price: user.price || 5000,
@@ -21,7 +22,7 @@ function loadModelsFromDatabase() {
         reviews: Math.floor((user.followers || 0) / 20),
         shoots: user.posts || 0,
         status: user.isOnline ? 'online' : 'offline',
-        image: user.avatar || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=600&fit=crop'
+        image: user.avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.username || user.name || 'User') + '&size=400&background=667eea&color=fff&bold=true'
     }));
 }
 
