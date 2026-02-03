@@ -71,6 +71,7 @@ function handleLogin(event) {
 function handleRegister(event) {
     event.preventDefault();
     
+    const username = document.getElementById('username').value.trim();
     const firstName = document.getElementById('firstName').value;
     const lastName = document.getElementById('lastName').value;
     const email = document.getElementById('registerEmail').value;
@@ -95,30 +96,41 @@ function handleRegister(event) {
         return;
     }
     
-    // Проверяем, не существует ли уже пользователь с таким email
+    // Проверка никнейма (только латиница, цифры, подчеркивание)
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+        showNotification('Никнейм может содержать только латинские буквы, цифры и подчеркивание', 'error');
+        return;
+    }
+    
+    // Проверяем, не существует ли уже пользователь с таким email или username
     const users = JSON.parse(localStorage.getItem('users') || '[]');
     const existingUser = users.find(u => u.email === email);
+    const existingUsername = users.find(u => u.username === username);
     
     if (existingUser) {
         showNotification('Пользователь с таким email уже существует', 'error');
         return;
     }
     
+    if (existingUsername) {
+        showNotification('Этот никнейм уже занят', 'error');
+        return;
+    }
+    
     // Создаем нового пользователя
     const newUser = {
         id: Date.now(),
+        username: username,
         firstName,
         lastName,
         name: firstName + ' ' + lastName,
         email,
         password,
         userType,
-        avatar: userType === 'model' 
-            ? `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000000)}?w=400&h=400&fit=crop&auto=format` 
-            : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(firstName + ' ' + lastName) + '&size=400&background=667eea&color=fff',
+        avatar: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(username) + '&size=400&background=667eea&color=fff&bold=true',
         createdAt: new Date().toISOString(),
         // Дополнительные поля для моделей
-        bio: userType === 'model' ? `Профессиональная модель 📸 | ${firstName} | Москва 🏙️` : '',
+        bio: userType === 'model' ? `Профессиональная модель 📸 | @${username} | Москва 🏙️` : '',
         verified: false,
         premium: false,
         followers: 0,
@@ -146,6 +158,7 @@ function handleRegister(event) {
     // Автоматический вход после регистрации
     const userData = {
         id: newUser.id,
+        username: username,
         name: firstName + ' ' + lastName,
         email: email,
         avatar: newUser.avatar,
