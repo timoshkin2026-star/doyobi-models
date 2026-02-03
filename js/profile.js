@@ -1,12 +1,13 @@
-// Загрузка профиля по ID из URL
+// Загрузка профиля по ID или username из URL
 let currentProfileUser = null;
 
 function loadProfileFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     const userId = urlParams.get('id');
+    const username = urlParams.get('username');
     
-    if (!userId) {
-        // Если нет ID, показываем дефолтный профиль (первую модель)
+    if (!userId && !username) {
+        // Если нет ID и username, показываем дефолтный профиль (первую модель)
         const models = getAllModels();
         if (models.length > 0) {
             currentProfileUser = models[0];
@@ -15,7 +16,18 @@ function loadProfileFromURL() {
             window.location.href = 'index.html';
             return;
         }
+    } else if (username) {
+        // Ищем по username
+        const users = getAllUsers();
+        currentProfileUser = users.find(u => u.username === username);
+        
+        if (!currentProfileUser) {
+            alert('Профиль не найден');
+            window.location.href = 'index.html';
+            return;
+        }
     } else {
+        // Ищем по ID
         currentProfileUser = getUserById(userId);
         
         if (!currentProfileUser) {
