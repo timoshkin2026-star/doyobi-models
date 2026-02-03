@@ -113,20 +113,21 @@ function handleRegister(event) {
         email,
         password,
         userType,
+        type: userType,
         avatar: userType === 'model' 
-            ? `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000000)}?w=400&h=400&fit=crop&auto=format` 
-            : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(firstName + ' ' + lastName) + '&size=400&background=667eea&color=fff',
+            ? `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName + ' ' + lastName)}&size=400&background=667eea&color=fff`
+            : `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName + ' ' + lastName)}&size=400&background=667eea&color=fff`,
         createdAt: new Date().toISOString(),
         // Дополнительные поля для моделей
         bio: userType === 'model' ? `Профессиональная модель 📸 | ${firstName} | Москва 🏙️` : '',
         verified: false,
         premium: false,
-        followers: userType === 'model' ? Math.floor(Math.random() * 500) + 100 : 0,
-        following: userType === 'model' ? Math.floor(Math.random() * 200) + 50 : 0,
-        posts: userType === 'model' ? 1 : 0,
-        likes: userType === 'model' ? Math.floor(Math.random() * 1000) + 200 : 0,
+        followers: 0,
+        following: 0,
+        posts: 0,
+        likes: 0,
         rating: userType === 'model' ? (Math.random() * 0.5 + 4.5).toFixed(1) : 0,
-        price: userType === 'model' ? (Math.floor(Math.random() * 5) + 5) * 1000 : 0, // От 5000 до 10000
+        price: userType === 'model' ? (Math.floor(Math.random() * 5) + 5) * 1000 : 0,
         category: userType === 'model' ? ['Fashion', 'Commercial', 'Fitness', 'Runway'][Math.floor(Math.random() * 4)] : '',
         age: 25,
         height: userType === 'model' ? Math.floor(Math.random() * 15) + 165 : 170,
@@ -136,11 +137,6 @@ function handleRegister(event) {
     
     users.push(newUser);
     localStorage.setItem('users', JSON.stringify(users));
-    
-    // Для моделей создаем пустой массив постов (без тестовых)
-    if (userType === 'model') {
-        localStorage.setItem('userPosts_' + newUser.id, JSON.stringify([]));
-    }
     
     // Автоматический вход после регистрации
     const userData = {
@@ -159,7 +155,7 @@ function handleRegister(event) {
     
     // Перенаправление через 1 секунду
     setTimeout(() => {
-        window.location.href = 'index.html';
+        window.location.href = 'user-profile.html';
     }, 1000);
 }
 
